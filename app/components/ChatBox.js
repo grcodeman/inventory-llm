@@ -62,6 +62,30 @@ export default function ChatBox() {
     });
   };
 
+  // speech2text with web speech api
+  const handleMicClick = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support speech recognition.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    recognition.start();
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -135,6 +159,10 @@ export default function ChatBox() {
           onChange={(e) => setInput(e.target.value)}
           style={{ flexGrow: 1, marginRight: '0.5rem' }}
         />
+        {/* speech2text button */}
+        <button type="button" onClick={handleMicClick} style={{ marginRight: '0.5rem' }}>
+          🎤
+        </button>
         <button type="submit">Send</button>
       </form>
     </div>

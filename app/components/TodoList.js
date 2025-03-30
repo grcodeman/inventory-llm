@@ -73,20 +73,25 @@ export default function TodoList() {
       y: e.clientY,
     });
   };
-
-  // Rename item function
+  //rename item function
   const renameItem = (locationName, oldItemName) => {
     const newItemName = prompt("Enter new name for item:", oldItemName);
+    
     if (newItemName && newItemName.trim()) {
-      setLocations((prevLocations) => {
-        const updatedLocationItems = { ...prevLocations[locationName] };
-        updatedLocationItems[newItemName] = updatedLocationItems[oldItemName];
-        delete updatedLocationItems[oldItemName];
-        return {
-          ...prevLocations,
-          [locationName]: updatedLocationItems, // Update the location with new items
-        };
-      });
+      // Check if the new item name already exists in the same location
+      if (locations[locationName][newItemName]) {
+        alert("An item with that name already exists in this location!");
+      } else {
+        setLocations((prevLocations) => {
+          const updatedLocationItems = { ...prevLocations[locationName] };
+          updatedLocationItems[newItemName] = updatedLocationItems[oldItemName];
+          delete updatedLocationItems[oldItemName];
+          return {
+            ...prevLocations,
+            [locationName]: updatedLocationItems, // Update the location with new items
+          };
+        });
+      }
     }
   };
 

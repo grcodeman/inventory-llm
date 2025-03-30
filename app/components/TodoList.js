@@ -63,7 +63,6 @@ export default function TodoList() {
     });
   };
   
-
   // Handle context menu for location (only for the name)
   const handleLocationContextMenu = (e, locationName) => {
     e.preventDefault();
@@ -74,7 +73,8 @@ export default function TodoList() {
       y: e.clientY,
     });
   };
-  //rename item function
+  
+  // Rename item function
   const renameItem = (locationName, oldItemName) => {
     const newItemName = prompt("Enter new name for item:", oldItemName);
     
@@ -130,6 +130,26 @@ export default function TodoList() {
     }));
   };
 
+  // New function: Change item quantity without tapping the plus button
+  const changeItemQuantity = (locationName, itemName) => {
+    const currentQuantity = locations[locationName][itemName];
+    const newQuantityStr = prompt("Enter new quantity for item:", currentQuantity);
+    if (newQuantityStr !== null) {
+      const newQuantity = parseInt(newQuantityStr, 10);
+      if (!isNaN(newQuantity) && newQuantity >= 0) {
+        setLocations((prevLocations) => ({
+          ...prevLocations,
+          [locationName]: {
+            ...prevLocations[locationName],
+            [itemName]: newQuantity,
+          },
+        }));
+      } else {
+        alert("Invalid quantity");
+      }
+    }
+  };
+
   const toggleDropdown = (locationName) => {
     setOpenLocations((prev) => ({
       ...prev,
@@ -159,7 +179,6 @@ export default function TodoList() {
     }
   };
   
-
   return (
     <div style={{ padding: '1rem', height: '100%' }}>
       <h2>Inventory</h2>
@@ -217,7 +236,7 @@ export default function TodoList() {
 
                 {/* List of items in location */}
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {Object.keys(locations[location]).map((item, index) => (  // Changed from locations[location].map to Object.keys(...)
+                  {Object.keys(locations[location]).map((item, index) => (
                     <li
                       key={index}
                       style={{
@@ -291,6 +310,18 @@ export default function TodoList() {
                 }}
               >
                 Rename Item
+              </button>
+              <button
+                onClick={() => changeItemQuantity(contextMenu.locationName, contextMenu.itemName)}
+                style={{
+                  background: "green",
+                  color: "white",
+                  border: "none",
+                  padding: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                Change Quantity
               </button>
               <button
                 onClick={() => moveItem(contextMenu.locationName, contextMenu.itemName)}

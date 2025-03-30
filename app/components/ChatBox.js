@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { FiMic,FiCheck } from 'react-icons/fi';
 
 // render api blocks with checkmark
 const ApiBlock = ({ content }) => {
@@ -36,7 +37,7 @@ const ApiBlock = ({ content }) => {
           justifyContent: 'center'
         }}
       >
-        ✔️
+        <FiCheck />
       </button>
     </div>
   );
@@ -60,6 +61,30 @@ export default function ChatBox() {
       // return as span
       return <span key={idx}>{part}</span>;
     });
+  };
+
+  // speech2text with web speech api
+  const handleMicClick = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support speech recognition.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    recognition.start();
   };
 
   const sendMessage = async (e) => {
@@ -135,6 +160,10 @@ export default function ChatBox() {
           onChange={(e) => setInput(e.target.value)}
           style={{ flexGrow: 1, marginRight: '0.5rem' }}
         />
+        {/* Updated mic button using a react-icon */}
+        <button type="button" onClick={handleMicClick} style={{ marginRight: '0.5rem' }}>
+          <FiMic />
+        </button>
         <button type="submit">Send</button>
       </form>
     </div>

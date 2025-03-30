@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { FiPlus, FiMinus, FiTrash2, FiEdit, FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 
-export default function TodoList() {
+export default function Inventory() {
   const [todos, setTodos] = useState([]);
   const [itemInput, setItemInput] = useState('');
   const [locations, setLocations] = useState({}); // Changed from [] to {}

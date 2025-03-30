@@ -12,13 +12,10 @@ export async function POST(request) {
     const body = await request.json();
     const { messages } = body;
     const response = await client.chat.completions.create({
-      model: "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      model: "deepseek-ai/DeepSeek-V3",
       max_tokens: 512,
-      temperature: 0.6,
-      top_p: 0.9,
-      extra_body: {
-        top_k: 50
-      },
+      temperature: 0.3,
+      top_p: 0.95,
       messages,
     });
     return NextResponse.json(response);

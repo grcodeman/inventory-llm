@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { FiPlus, FiMinus, FiTrash2, FiEdit, FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -62,7 +63,7 @@ export default function TodoList() {
       y: e.clientY,
     });
   };
-  
+
   // Handle context menu for location (only for the name)
   const handleLocationContextMenu = (e, locationName) => {
     e.preventDefault();
@@ -73,11 +74,11 @@ export default function TodoList() {
       y: e.clientY,
     });
   };
-  
+
   // Rename item function
   const renameItem = (locationName, oldItemName) => {
     const newItemName = prompt("Enter new name for item:", oldItemName);
-    
+
     if (newItemName && newItemName.trim()) {
       // Check if the new item name already exists in the same location
       if (locations[locationName][newItemName]) {
@@ -159,7 +160,7 @@ export default function TodoList() {
 
   const moveItem = (oldLocation, itemName) => {
     const newLocation = prompt("Enter the new location for this item:");
-  
+
     if (newLocation && locations[newLocation]) {
       setLocations((prevLocations) => {
         const updatedLocations = { ...prevLocations };
@@ -178,7 +179,7 @@ export default function TodoList() {
       alert("Invalid location name.");
     }
   };
-  
+
   return (
     <div style={{ padding: '1rem', height: '100%' }}>
       <h2>Inventory</h2>
@@ -191,7 +192,9 @@ export default function TodoList() {
           value={locationInput}
           onChange={(e) => setLocationInput(e.target.value)}
         />
-        <button onClick={addLocation}>Add</button>
+        <button onClick={addLocation}>
+          <FiPlus />
+        </button>
       </div>
 
       {/* Display locations */}
@@ -231,7 +234,9 @@ export default function TodoList() {
                     value={itemInput}
                     onChange={(e) => setItemInput(e.target.value)}
                   />
-                  <button type="submit">Add</button>
+                  <button type="submit">
+                    <FiPlus />
+                  </button>
                 </form>
 
                 {/* List of items in location */}
@@ -251,14 +256,14 @@ export default function TodoList() {
                           onClick={() => decreaseItemQuantity(location, item)}
                           style={{ marginRight: "5px" }}
                         >
-                          -
+                          <FiMinus />
                         </button>
                         <span>{locations[location][item]}</span>
                         <button
                           onClick={() => increaseItemQuantity(location, item)}
                           style={{ marginLeft: "5px" }}
                         >
-                          +
+                          <FiPlus />
                         </button>
                       </div>
                     </li>
@@ -288,6 +293,7 @@ export default function TodoList() {
           {contextMenu.itemName ? (
             <>
               <button
+                title="Delete Item"
                 onClick={() => deleteItem(contextMenu.locationName, contextMenu.itemName)}
                 style={{
                   background: "red",
@@ -297,9 +303,10 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Delete Item
+                <FiTrash2 />
               </button>
               <button
+                title="Rename Item"
                 onClick={() => renameItem(contextMenu.locationName, contextMenu.itemName)}
                 style={{
                   background: "orange",
@@ -309,9 +316,10 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Rename Item
+                <FiEdit />
               </button>
               <button
+                title="Change Quantity"
                 onClick={() => changeItemQuantity(contextMenu.locationName, contextMenu.itemName)}
                 style={{
                   background: "green",
@@ -321,9 +329,10 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Change Quantity
+                <FiRefreshCw />
               </button>
               <button
+                title="Move"
                 onClick={() => moveItem(contextMenu.locationName, contextMenu.itemName)}
                 style={{
                   background: "blue",
@@ -333,12 +342,13 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Move
+                <FiArrowRight />
               </button>
             </>
           ) : (
             <>
               <button
+                title="Delete Location"
                 onClick={() => deleteLocation(contextMenu.locationName)}
                 style={{
                   background: "red",
@@ -348,9 +358,10 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Delete Location
+                <FiTrash2 />
               </button>
               <button
+                title="Rename Location"
                 onClick={() => renameLocation(contextMenu.locationName)}
                 style={{
                   background: "orange",
@@ -360,7 +371,7 @@ export default function TodoList() {
                   cursor: "pointer",
                 }}
               >
-                Rename Location
+                <FiEdit />
               </button>
             </>
           )}

@@ -1,6 +1,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --user-bubble-bg: #DCF8C6;
+  --assistant-bubble-bg: #eee;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,5 +40,9 @@ a {
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+  :root {
+    --user-bubble-bg: #3A3F35;
+    --assistant-bubble-bg: #555;
   }
 }

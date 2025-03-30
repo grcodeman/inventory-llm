@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { FiMic,FiCheck } from 'react-icons/fi';
 
 // render api blocks with checkmark
 const ApiBlock = ({ content }) => {
@@ -36,7 +37,7 @@ const ApiBlock = ({ content }) => {
           justifyContent: 'center'
         }}
       >
-        ✔️
+        <FiCheck />
       </button>
     </div>
   );
@@ -159,9 +160,9 @@ export default function ChatBox() {
           onChange={(e) => setInput(e.target.value)}
           style={{ flexGrow: 1, marginRight: '0.5rem' }}
         />
-        {/* speech2text button */}
+        {/* Updated mic button using a react-icon */}
         <button type="button" onClick={handleMicClick} style={{ marginRight: '0.5rem' }}>
-          🎤
+          <FiMic />
         </button>
         <button type="submit">Send</button>
       </form>

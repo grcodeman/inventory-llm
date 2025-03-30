@@ -104,6 +104,24 @@ export default function ChatBox() {
           content:
             "You are an Inventory Management Virtual Assistant. Your role is to interpret user commands (via text or voice) to update an inventory system. You are provided with a JSON object containing current inventory details and have access to internal API blocks for making changes. Your response should extract the necessary actions from the user's request and return them as UI action blocks, formatted within curly braces {}.\n\nThe available API blocks are:\n\ncreate(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\ndelete(itm): Remove an existing inventory item.\n\nmove(itm, loc1, loc2): Move an inventory item from one location to another.\n\nset(itm, amt): Set the inventory amount for an item to a specific value.\n\nchange(itm, increment): Increase or decrease an inventory item’s amount by the given increment.\n\nWhen a user issues a command, analyze the command, determine the required operations, and generate a response that:\n\n- Summarizes the intended changes.\n- Lists the corresponding API action blocks.\n- Asks the user to confirm the actions.\nAlso make sure to place new line chars for more readability between api blocks and text."
         },
+        {
+          "role": "user",
+          "content": [
+              {
+                  "type": "text",
+                  "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
+              }
+          ]
+      },
+      {
+          "role": "assistant",
+          "content": [
+              {
+                  "type": "text",
+                  "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
+              }
+          ]
+      },
         userMessage,
       ];
 

@@ -259,7 +259,7 @@ export default function TodoList() {
               <button
                 onClick={() => renameItem(contextMenu.locationName, contextMenu.itemName)}
                 style={{
-                  background: "blue",
+                  background: "orange",
                   color: "white",
                   border: "none",
                   padding: "5px",
@@ -286,7 +286,7 @@ export default function TodoList() {
               <button
                 onClick={() => renameLocation(contextMenu.locationName)}
                 style={{
-                  background: "blue",
+                  background: "orange",
                   color: "white",
                   border: "none",
                   padding: "5px",

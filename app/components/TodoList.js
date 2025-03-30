@@ -25,6 +25,20 @@ export default function TodoList() {
     });
     setContextMenu(null);
   };
+//rename the location
+  const renameLocation = (oldName) => {
+    const newName = prompt("Enter new name for location:", oldName);
+    if (newName && newName.trim() && !locations[newName]) {
+      setLocations((prev) => {
+        const updatedLocations = { ...prev };
+        updatedLocations[newName] = updatedLocations[oldName];
+        delete updatedLocations[oldName];
+        return updatedLocations;
+      });
+    } else if (newName && locations[newName]) {
+      alert("Location name already exists!");
+    }
+  };
 
   // Show context menu at mouse position
   const handleContextMenu = (e, locationName) => {
@@ -49,7 +63,7 @@ export default function TodoList() {
   };
 
   // Delete an item from a specific location
-  const deleteTodo = (location, index) => {
+  const deleteItem = (location, index) => {
     setLocations((prev) => ({
       ...prev,
       [location]: prev[location].filter((_, i) => i !== index),
@@ -126,7 +140,7 @@ export default function TodoList() {
                       style={{ display: 'flex', justifyContent: 'space-between' }}
                     >
                       <span>{item}</span>
-                      <button onClick={() => deleteTodo(location, index)}>Delete</button>
+                      <button onClick={() => deleteItem(location, index)}>Delete</button>
                     </li>
                   ))}
                 </ul>
@@ -137,34 +151,47 @@ export default function TodoList() {
       </div>
       
       {/* Context menu */}
-      {contextMenu && (
-        <div
-          style={{
-            background: "white",
-            border: "1px solid gray",
-            padding: "5px",
-            boxShadow: "2px 2px 10px rgba(0,0,0,0.2)",
-            zIndex: 1000,
-            position: "absolute",
-            top: contextMenu.y,
-            left: contextMenu.x,
-          }}
-          onMouseLeave={() => setContextMenu(null)}
-        >
-          <button
-            onClick={() => deleteLocation(contextMenu.locationName)}
-            style={{
-              background: "red",
-              color: "white",
-              border: "none",
-              padding: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Delete
-          </button>
-        </div>
-      )}
+{contextMenu && (
+  <div
+    style={{
+      background: "white",
+      border: "1px solid gray",
+      padding: "5px",
+      boxShadow: "2px 2px 10px rgba(0,0,0,0.2)",
+      zIndex: 1000,
+      position: "absolute",
+      top: contextMenu.y,
+      left: contextMenu.x,
+    }}
+    onMouseLeave={() => setContextMenu(null)} // Hide context menu on mouse leave
+  >
+    <button
+      onClick={() => deleteLocation(contextMenu.locationName)}
+      style={{
+        background: "red",
+        color: "white",
+        border: "none",
+        padding: "5px",
+        cursor: "pointer",
+        marginBottom: "5px", // Adding space between buttons
+      }}
+    >
+      Delete
+    </button>
+    <button
+      onClick={() => renameLocation(contextMenu.locationName)} // Use locationName, not oldName
+      style={{
+        background: "orange",
+        color: "white",
+        border: "none",
+        padding: "5px",
+        cursor: "pointer",
+      }}
+    >
+      Rename
+    </button>
+  </div>
+)}
     </div>
   );
 }

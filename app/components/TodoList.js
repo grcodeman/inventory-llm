@@ -4,18 +4,17 @@ import { useState } from 'react';
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
   const [itemInput, setItemInput] = useState('');
-  const [locations, setLocations] = useState({});
+  const [locations, setLocations] = useState({}); // Changed from [] to {}
   const [locationInput, setLocationInput] = useState("");
   const [contextMenu, setContextMenu] = useState(null);
   const [openLocations, setOpenLocations] = useState({});
 
   const addLocation = () => {
     if (locationInput.trim() && !locations[locationInput]) {
-      setLocations({ ...locations, [locationInput]: {} });
-      setLocationInput("");
+      setLocations((prev) => ({ ...prev, [locationInput]: {} })); // Changed [] to {}
+      setLocationInput('');
     }
   };
-
   const deleteLocation = (locationName) => {
     setLocations((prev) => {
       const updatedLocations = { ...prev };
@@ -56,12 +55,14 @@ export default function TodoList() {
   const handleItemContextMenu = (e, locationName, itemName) => {
     e.preventDefault();
     setContextMenu({
+      type: "item", // Specify this is for an item
       locationName,
       itemName,
       x: e.clientX,
       y: e.clientY,
     });
   };
+  
 
   // Handle context menu for location (only for the name)
   const handleLocationContextMenu = (e, locationName) => {
@@ -136,6 +137,29 @@ export default function TodoList() {
     }));
   };
 
+  const moveItem = (oldLocation, itemName) => {
+    const newLocation = prompt("Enter the new location for this item:");
+  
+    if (newLocation && locations[newLocation]) {
+      setLocations((prevLocations) => {
+        const updatedLocations = { ...prevLocations };
+        const quantity = updatedLocations[oldLocation][itemName];
+        // Remove item from the original location
+        const updatedOldLocation = { ...updatedLocations[oldLocation] };
+        delete updatedOldLocation[itemName];
+        updatedLocations[oldLocation] = updatedOldLocation;
+        // Add item to the new location
+        const updatedNewLocation = { ...updatedLocations[newLocation] };
+        updatedNewLocation[itemName] = (updatedNewLocation[itemName] || 0) + quantity;
+        updatedLocations[newLocation] = updatedNewLocation;
+        return updatedLocations;
+      });
+    } else {
+      alert("Invalid location name.");
+    }
+  };
+  
+
   return (
     <div style={{ padding: '1rem', height: '100%' }}>
       <h2>Inventory</h2>
@@ -193,14 +217,14 @@ export default function TodoList() {
 
                 {/* List of items in location */}
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {Object.keys(locations[location]).map((item) => (
+                  {Object.keys(locations[location]).map((item, index) => (  // Changed from locations[location].map to Object.keys(...)
                     <li
-                      key={item}
+                      key={index}
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                       }}
-                      onContextMenu={(e) => handleItemContextMenu(e, location, item)} // Right-click on item name
+                      onContextMenu={(e) => handleItemContextMenu(e, location, item)} // Attach the context menu
                     >
                       <span>{item}</span>
                       <div>
@@ -267,6 +291,18 @@ export default function TodoList() {
                 }}
               >
                 Rename Item
+              </button>
+              <button
+                onClick={() => moveItem(contextMenu.locationName, contextMenu.itemName)}
+                style={{
+                  background: "blue",
+                  color: "white",
+                  border: "none",
+                  padding: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                Move
               </button>
             </>
           ) : (

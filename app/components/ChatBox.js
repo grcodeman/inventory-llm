@@ -1,6 +1,48 @@
 "use client";
 import { useState } from 'react';
 
+// render api blocks with checkmark
+const ApiBlock = ({ content }) => {
+  const [confirmed, setConfirmed] = useState(false);
+  const handleConfirm = () => setConfirmed(true);
+
+  return (
+    <div
+      style={{
+        backgroundColor: confirmed ? 'grey' : 'var(--api-block-bg)',
+        padding: '8px',
+        margin: '8px 0',
+        fontFamily: 'monospace',
+        borderRadius: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}
+    >
+      <span>{content}</span>
+      <button
+        onClick={handleConfirm}
+        style={{
+          marginLeft: '8px',
+          cursor: 'pointer',
+          backgroundColor: confirmed ? 'grey' : 'green',
+          color: 'white',
+          border: 'none',
+          borderRadius: '50%',
+          width: '24px',
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        ✔️
+      </button>
+    </div>
+  );
+};
+
+// chatbox ui/logic
 export default function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -13,20 +55,7 @@ export default function ChatBox() {
       if (part.startsWith('{') && part.endsWith('}')) {
         // remove {}
         const blockContent = part.slice(1, -1);
-        return (
-          <div
-            key={idx}
-            style={{
-              backgroundColor: 'var(--api-block-bg)',
-              padding: '8px',
-              margin: '8px 0',
-              fontFamily: 'monospace',
-              borderRadius: '4px'
-            }}
-          >
-            {blockContent}
-          </div>
-        );
+        return <ApiBlock content={blockContent} key={idx} />;
       }
       // return as span
       return <span key={idx}>{part}</span>;

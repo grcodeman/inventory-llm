@@ -7,6 +7,7 @@ export default function TodoList() {
   const [locations, setLocations] = useState({});
   const [locationInput, setLocationInput] = useState("");
   const [contextMenu, setContextMenu] = useState(null);
+  const [openLocations, setOpenLocations] = useState({})
 
   const addLocation = () => {
     if (locationInput.trim() && !locations[locationInput]){
@@ -42,6 +43,13 @@ export default function TodoList() {
     setTodos(todos.filter((_, i) => i !== index));
   };
 
+  const toggleDropdown = (locationName) => {
+    setOpenLocations((prev) => ({
+      ...prev,
+      [locationName]: !prev[locationName],
+    }));
+  };
+
   return (
     <div style={{ padding: '1rem', height: '100%' }}>
       <h2>Invetory</h2>
@@ -70,23 +78,43 @@ export default function TodoList() {
         value={locationInput}
         onChange={(e) => setLocationInput(e.target.value)}
         />
-        <button onClick={addLocation}>+</button>
+        <button onClick={addLocation}>add</button>
       </div>
       {/* Display locations*/}
-      <div style={{display: "flex", gap: '10px', flexWrap: 'wrap'}}>
+      <div style={{display: "flex", flexDirection: "column", gap: '10px', flexWrap: 'wrap'}}>
         {Object.keys(locations).map((location) => (
           <div
           key={location}
           onContextMenu={(e) => handleContextMenu(e, location)}
           style={{
-            padding: '10px',
             border: "2px solid gray",
-            minWidth: "100px",
+            minWidth: "200px",
             cursor: "pointer",
             userSelect: "none",
           }}
           >
-            <span>{location}</span>
+            {/* Location Header (expand/collapse) */}
+            <div
+            onClick={() => toggleDropdown(location)}
+            style={{
+              padding: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}>
+              <span>{location}</span>
+              <span>{openLocations[location] ? "▲" : "▼"}</span>
+            </div>
+            {/* Dropdown Content (hidden if closed) */}
+            {openLocations[location] && (
+              <div
+              style={{
+                padding: "10px",
+              }}
+              >
+                <p>(items will go here)</p>
+                </div>
+            )}
             </div>
         ))}
 

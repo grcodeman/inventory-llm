@@ -11,7 +11,7 @@ export default function TodoList() {
 
   const addLocation = () => {
     if (locationInput.trim() && !locations[locationInput]) {
-      setLocations({ ...locations, [locationInput]: [] });
+      setLocations({ ...locations, [locationInput]: {} });
       setLocationInput("");
     }
   };
@@ -43,7 +43,10 @@ export default function TodoList() {
     if (itemInput.trim()) {
       setLocations((prev) => ({
         ...prev,
-        [location]: [...prev[location], itemInput],
+        [location]: {
+          ...prev[location],
+          [itemInput]: (prev[location][itemInput] || 0) + 1, // Add 1 or initialize to 1
+        },
       }));
       setItemInput('');
     }
@@ -76,9 +79,9 @@ export default function TodoList() {
     const newItemName = prompt("Enter new name for item:", oldItemName);
     if (newItemName && newItemName.trim()) {
       setLocations((prevLocations) => {
-        const updatedLocationItems = prevLocations[locationName].map(item =>
-          item === oldItemName ? newItemName : item
-        );
+        const updatedLocationItems = { ...prevLocations[locationName] };
+        updatedLocationItems[newItemName] = updatedLocationItems[oldItemName];
+        delete updatedLocationItems[oldItemName];
         return {
           ...prevLocations,
           [locationName]: updatedLocationItems, // Update the location with new items
@@ -90,12 +93,35 @@ export default function TodoList() {
   // Delete item function
   const deleteItem = (locationName, itemName) => {
     setLocations((prevLocations) => {
-      const updatedLocationItems = prevLocations[locationName].filter(item => item !== itemName);
+      const updatedLocationItems = { ...prevLocations[locationName] };
+      delete updatedLocationItems[itemName]; // Remove item from location
       return {
         ...prevLocations,
-        [locationName]: updatedLocationItems, // Update the location by removing the item
+        [locationName]: updatedLocationItems, // Update the location
       };
     });
+  };
+
+  // Increase item quantity
+  const increaseItemQuantity = (locationName, itemName) => {
+    setLocations((prevLocations) => ({
+      ...prevLocations,
+      [locationName]: {
+        ...prevLocations[locationName],
+        [itemName]: prevLocations[locationName][itemName] + 1,
+      },
+    }));
+  };
+
+  // Decrease item quantity (minimum 0)
+  const decreaseItemQuantity = (locationName, itemName) => {
+    setLocations((prevLocations) => ({
+      ...prevLocations,
+      [locationName]: {
+        ...prevLocations[locationName],
+        [itemName]: Math.max(0, prevLocations[locationName][itemName] - 1),
+      },
+    }));
   };
 
   const toggleDropdown = (locationName) => {
@@ -162,9 +188,9 @@ export default function TodoList() {
 
                 {/* List of items in location */}
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {locations[location].map((item, index) => (
+                  {Object.keys(locations[location]).map((item) => (
                     <li
-                      key={index}
+                      key={item}
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -172,6 +198,21 @@ export default function TodoList() {
                       onContextMenu={(e) => handleItemContextMenu(e, location, item)} // Right-click on item name
                     >
                       <span>{item}</span>
+                      <div>
+                        <button
+                          onClick={() => decreaseItemQuantity(location, item)}
+                          style={{ marginRight: "5px" }}
+                        >
+                          -
+                        </button>
+                        <span>{locations[location][item]}</span>
+                        <button
+                          onClick={() => increaseItemQuantity(location, item)}
+                          style={{ marginLeft: "5px" }}
+                        >
+                          +
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -213,7 +254,7 @@ export default function TodoList() {
               <button
                 onClick={() => renameItem(contextMenu.locationName, contextMenu.itemName)}
                 style={{
-                  background: "orange",
+                  background: "blue",
                   color: "white",
                   border: "none",
                   padding: "5px",
@@ -240,7 +281,7 @@ export default function TodoList() {
               <button
                 onClick={() => renameLocation(contextMenu.locationName)}
                 style={{
-                  background: "orange",
+                  background: "blue",
                   color: "white",
                   border: "none",
                   padding: "5px",

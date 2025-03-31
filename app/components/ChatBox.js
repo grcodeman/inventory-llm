@@ -49,7 +49,7 @@ export default function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
-  // Function to extract API blocks
+  // Function to extract API blocks from text
   const renderMessageContent = (content) => {
     const parts = content.split(/({[^}]+})/g);
     return parts.map((part, idx) => {
@@ -89,18 +89,43 @@ export default function ChatBox() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // User message
+    // Add the user's message to chat
     const userMessage = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
 
     try {
-      // prep call
+      // 1) First, fetch the current inventory from /api/inv route
+      const invRes = await fetch('/api/inv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GET_ALL' })
+      });
+      const invData = await invRes.json();
+      // If the route returns 'locations', we can embed it into the system message
+      const { locations } = invData;
+
+      // 2) Construct conversation with inventory context
       const conversation = [
         {
           role: "system",
           content:
-            "You are an Inventory Management Virtual Assistant. Your role is to interpret user commands (via text or voice) to update an inventory system. You are provided with a JSON object containing current inventory details and have access to internal API blocks for making changes. Your response should extract the necessary actions from the user's request and return them as UI action blocks, formatted within curly braces {}.\n\nThe available API blocks are:\n\ncreate(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\ndelete(itm): Remove an existing inventory item.\n\nmove(itm, loc1, loc2): Move an inventory item from one location to another.\n\nset(itm, amt): Set the inventory amount for an item to a specific value.\n\nchange(itm, increment): Increase or decrease an inventory item’s amount by the given increment.\n\nWhen a user issues a command, analyze the command, determine the required operations, and generate a response that:\n\n- Summarizes the intended changes.\n- Lists the corresponding API action blocks.\n- Asks the user to confirm the actions.\nAlso make sure to place new line chars for more readability between api blocks and text."
+            // Original system prompt...
+            "You are an Inventory Management Virtual Assistant. Your role is to interpret user commands (via text or voice) to update an inventory system.\n\n" +
+            "You have access to internal API blocks for making changes, and the user has an existing inventory. Here is the current JSON inventory:\n\n" +
+            JSON.stringify(locations, null, 2) + // embeding current inventory
+            "\n\n" +
+            "The available API blocks are:\n\n" +
+            "create(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\n" +
+            "delete(itm): Remove an existing inventory item.\n" +
+            "move(itm, loc1, loc2): Move an inventory item from one location to another.\n" +
+            "set(itm, amt): Set the inventory amount for an item to a specific value.\n" +
+            "change(itm, increment): Increase or decrease an inventory item’s amount by the given increment.\n\n" +
+            "Make sure to only ever use {} for these api calls, and when a user issues a command, analyze the command, determine the required operations, and generate a response that:\n" +
+            "- Summarizes the intended changes.\n" +
+            "- Lists the corresponding API action blocks.\n" +
+            "- Asks the user to confirm the actions.\n" +
+            "Also make sure to place new line chars for more readability between api blocks and text."
         },
         {
           "role": "user",
@@ -120,26 +145,26 @@ export default function ChatBox() {
             }
           ]
         },
-        userMessage,
+        userMessage
       ];
 
-      // call api
+      // 3) Send  conversation to /api/chat route
       const resApi = await fetch('/api/chat/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: conversation }),
       });
       const data = await resApi.json();
 
-      // extract reply from api response
-      const assistantContent = data.choices[0].message.content;
+      // 4) Extract reply from API response
+      const assistantContent = data.choices?.[0]?.message?.content || "No response";
       const assistantMessage = { role: 'assistant', content: assistantContent };
 
+      // 5) Update local messages with assistant response
       setMessages((prev) => [...prev, assistantMessage]);
+
     } catch (error) {
-      console.error("Error calling API:", error);
+      console.error("Error calling API or inventory route:", error);
     }
   };
 

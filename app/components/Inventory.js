@@ -185,7 +185,7 @@ export default function Inventory() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem' }}>
-      <h2 style={{ marginBottom: '1rem' }}>Inventory</h2>
+      <h2 style={{ marginBottom: '1rem', textAlign: 'center' }}>Inventory</h2>
 
       {/* FORM to allow Enter to add location */}
       <form

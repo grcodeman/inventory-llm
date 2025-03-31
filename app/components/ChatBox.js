@@ -148,26 +148,27 @@ export default function ChatBox() {
 
   return (
     <div style={{
-      //maxWidth: '600px',
-      margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      padding: '1rem',
-      //background: 'var(--background)'
+      padding: '1rem'
     }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Assistant</h2>
-      <div style={{
-          flexGrow: 1,
+      <h2 style={{ marginBottom: '1rem', textAlign: 'center' }}>Assistant</h2>
+
+      <div
+        style={{
+          flex: 1,
           overflowY: 'auto',
           border: '1px solid #ccc',
-          borderRadius: '8px',
+          borderRadius: '6px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           marginBottom: '1rem',
-          padding: '1rem',
-          //backgroundColor: 'var(--assistant-bubble-bg)'
-        }}>
+          padding: '1rem'
+        }}
+      >
         {messages.map((msg, index) => (
-          <div key={index}
+          <div
+            key={index}
             style={{
               maxWidth: '70%',
               margin: '0.5rem 0',
@@ -177,15 +178,15 @@ export default function ChatBox() {
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
               wordWrap: 'break-word'
-            }}>
+            }}
+          >
             {renderMessageContent(msg.content)}
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage} style={{
-        display: 'flex',
-        gap: '0.5rem'
-      }}>
+
+      {/* Form to submit new messages */}
+      <form onSubmit={sendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
         <input
           type="text"
           placeholder="Type your message..."
@@ -193,32 +194,42 @@ export default function ChatBox() {
           onChange={(e) => setInput(e.target.value)}
           style={{
             flexGrow: 1,
+            fontSize: '1rem',
             padding: '0.75rem',
             border: '1px solid #ccc',
             borderRadius: '4px',
             outline: 'none'
           }}
         />
-        <button type="button" onClick={handleMicClick}
+        <button
+          type="button"
+          onClick={handleMicClick}
           style={{
+            fontSize: '1rem',
             padding: '0.75rem',
             border: 'none',
             borderRadius: '4px',
             backgroundColor: '#007bff',
             color: 'white',
-            cursor: 'pointer'
-          }}>
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
           <FiMic />
         </button>
-        <button type="submit"
+        <button
+          type="submit"
           style={{
+            fontSize: '1rem',
             padding: '0.75rem 1rem',
             border: 'none',
             borderRadius: '4px',
             backgroundColor: 'green',
             color: 'white',
             cursor: 'pointer'
-          }}>
+          }}
+        >
           Send
         </button>
       </form>

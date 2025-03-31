@@ -51,13 +51,21 @@ export default function ChatBox() {
 
   // Function to extract API blocks from text
   const renderMessageContent = (content) => {
+    // Split on {...} blocks
     const parts = content.split(/({[^}]+})/g);
+
     return parts.map((part, idx) => {
+      // If it's an API block
       if (part.startsWith('{') && part.endsWith('}')) {
         const blockContent = part.slice(1, -1);
         return <ApiBlock content={blockContent} key={idx} />;
       }
-      return <span key={idx}>{part}</span>;
+
+      // text styling for bold
+      const replacedPart = part.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+      return (
+        <span key={idx} dangerouslySetInnerHTML={{ __html: replacedPart }} />
+      );
     });
   };
 
@@ -96,11 +104,7 @@ export default function ChatBox() {
 
     // Start typing bubble
     const typingIndex = messages.length + 1;
-    setMessages((prev) => [
-      ...prev,
-      { role: 'assistant', content: '...' }
-    ]);
-
+    setMessages((prev) => [...prev, { role: 'assistant', content: '...' }]);
 
     try {
       // 1) Fetch the current inventory from /api/inv route

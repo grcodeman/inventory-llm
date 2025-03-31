@@ -51,15 +51,12 @@ export default function ChatBox() {
 
   // Function to extract API blocks
   const renderMessageContent = (content) => {
-    // Split content on any {}
     const parts = content.split(/({[^}]+})/g);
     return parts.map((part, idx) => {
       if (part.startsWith('{') && part.endsWith('}')) {
-        // Remove {}
         const blockContent = part.slice(1, -1);
         return <ApiBlock content={blockContent} key={idx} />;
       }
-      // Return as span
       return <span key={idx}>{part}</span>;
     });
   };
@@ -98,7 +95,7 @@ export default function ChatBox() {
     setInput('');
 
     try {
-      // Prep call conversation
+      // prep call
       const conversation = [
         {
           role: "system",
@@ -106,27 +103,27 @@ export default function ChatBox() {
             "You are an Inventory Management Virtual Assistant. Your role is to interpret user commands (via text or voice) to update an inventory system. You are provided with a JSON object containing current inventory details and have access to internal API blocks for making changes. Your response should extract the necessary actions from the user's request and return them as UI action blocks, formatted within curly braces {}.\n\nThe available API blocks are:\n\ncreate(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\ndelete(itm): Remove an existing inventory item.\n\nmove(itm, loc1, loc2): Move an inventory item from one location to another.\n\nset(itm, amt): Set the inventory amount for an item to a specific value.\n\nchange(itm, increment): Increase or decrease an inventory item’s amount by the given increment.\n\nWhen a user issues a command, analyze the command, determine the required operations, and generate a response that:\n\n- Summarizes the intended changes.\n- Lists the corresponding API action blocks.\n- Asks the user to confirm the actions.\nAlso make sure to place new line chars for more readability between api blocks and text."
         },
         {
-          role: "user",
-          content: [
+          "role": "user",
+          "content": [
               {
-                  type: "text",
-                  text: "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
+                  "type": "text",
+                  "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
               }
           ]
-        },
-        {
-          role: "assistant",
-          content: [
+      },
+      {
+          "role": "assistant",
+          "content": [
               {
-                  type: "text",
-                  text: "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
+                  "type": "text",
+                  "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
               }
           ]
-        },
+      },
         userMessage,
       ];
 
-      // Call API
+      // call api
       const resApi = await fetch('/api/chat/', {
         method: 'POST',
         headers: {
@@ -136,7 +133,7 @@ export default function ChatBox() {
       });
       const data = await resApi.json();
 
-      // Extract reply from API response
+      // extract reply from api response
       const assistantContent = data.choices[0].message.content;
       const assistantMessage = { role: 'assistant', content: assistantContent };
 
@@ -167,20 +164,31 @@ export default function ChatBox() {
         }}
       >
         {messages.map((msg, index) => (
+          // Container that aligns message bubble left or right
           <div
             key={index}
             style={{
-              maxWidth: '70%',
-              margin: '0.5rem 0',
-              padding: '0.75rem',
-              backgroundColor: msg.role === 'user' ? 'var(--user-bubble-bg)' : 'var(--assistant-bubble-bg)',
-              borderRadius: '15px',
-              alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              wordWrap: 'break-word'
+              display: 'flex',
+              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              margin: '0.5rem 0'
             }}
           >
-            {renderMessageContent(msg.content)}
+            {/* The message bubble */}
+            <div
+              style={{
+                maxWidth: '70%',
+                padding: '0.75rem',
+                borderRadius: '15px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                backgroundColor:
+                  msg.role === 'user'
+                    ? 'var(--user-bubble-bg)'
+                    : 'var(--assistant-bubble-bg)',
+                wordWrap: 'break-word'
+              }}
+            >
+              {renderMessageContent(msg.content)}
+            </div>
           </div>
         ))}
       </div>

@@ -127,10 +127,10 @@ export default function ChatBox() {
             "\n\n" +
             "The available API blocks are:\n\n" +
             "create(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\n" +
-            "delete(itm): Remove an existing inventory item.\n" +
+            "delete(itm, loc): Remove an existing inventory item.\n" +
             "move(itm, loc1, loc2): Move an inventory item from one location to another.\n" +
-            "set(itm, amt): Set the inventory amount for an item to a specific value.\n" +
-            "change(itm, increment): Increase or decrease an inventory item’s amount by the given increment.\n\n" +
+            "set(itm, loc, amt): Set the inventory amount for an item to a specific value.\n" +
+            "change(itm, loc, increment): Increase or decrease an inventory item’s amount by the given increment.\n\n" +
             "Make sure to only ever use {} for these api calls, and when a user issues a command, analyze the command, determine the required operations, and generate a response that:\n" +
             "- Summarizes the intended changes.\n" +
             "- Lists the corresponding API action blocks.\n" +

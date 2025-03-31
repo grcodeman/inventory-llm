@@ -1,8 +1,8 @@
 "use client";
 import { useState } from 'react';
-import { FiMic,FiCheck } from 'react-icons/fi';
+import { FiMic, FiCheck, FiSend } from 'react-icons/fi';
 
-// render api blocks with checkmark
+// Render API blocks with checkmark
 const ApiBlock = ({ content }) => {
   const [confirmed, setConfirmed] = useState(false);
   const handleConfirm = () => setConfirmed(true);
@@ -11,13 +11,14 @@ const ApiBlock = ({ content }) => {
     <div
       style={{
         backgroundColor: confirmed ? 'grey' : 'var(--api-block-bg)',
-        padding: '8px',
+        padding: '10px',
         margin: '8px 0',
         fontFamily: 'monospace',
-        borderRadius: '4px',
+        borderRadius: '6px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        transition: 'background-color 0.3s ease',
       }}
     >
       <span>{content}</span>
@@ -30,11 +31,11 @@ const ApiBlock = ({ content }) => {
           color: 'white',
           border: 'none',
           borderRadius: '50%',
-          width: '24px',
-          height: '24px',
+          width: '28px',
+          height: '28px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
         }}
       >
         <FiCheck />
@@ -43,27 +44,24 @@ const ApiBlock = ({ content }) => {
   );
 };
 
-// chatbox ui/logic
+// Chatbox UI/logic
 export default function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
 
-  // function to extract api blocks
+  // Function to extract API blocks
   const renderMessageContent = (content) => {
-    // split content on any {}
     const parts = content.split(/({[^}]+})/g);
     return parts.map((part, idx) => {
       if (part.startsWith('{') && part.endsWith('}')) {
-        // remove {}
         const blockContent = part.slice(1, -1);
         return <ApiBlock content={blockContent} key={idx} />;
       }
-      // return as span
       return <span key={idx}>{part}</span>;
     });
   };
 
-  // speech2text with web speech api
+  // Speech-to-text using the Web Speech API
   const handleMicClick = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -91,7 +89,7 @@ export default function ChatBox() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // user message
+    // User message
     const userMessage = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -107,21 +105,21 @@ export default function ChatBox() {
         {
           "role": "user",
           "content": [
-              {
-                  "type": "text",
-                  "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
-              }
+            {
+              "type": "text",
+              "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
+            }
           ]
-      },
-      {
+        },
+        {
           "role": "assistant",
           "content": [
-              {
-                  "type": "text",
-                  "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
-              }
+            {
+              "type": "text",
+              "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
+            }
           ]
-      },
+        },
         userMessage,
       ];
 
@@ -146,43 +144,106 @@ export default function ChatBox() {
   };
 
   return (
-    <div style={{ padding: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h2>Chat</h2>
-      <div style={{
-          flexGrow: 1,
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      padding: '1rem'
+    }}>
+      <h2 style={{ marginBottom: '1rem', textAlign: 'center' }}>Assistant</h2>
+
+      <div
+        style={{
+          flex: 1,
           overflowY: 'auto',
           border: '1px solid #ccc',
+          borderRadius: '6px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           marginBottom: '1rem',
-          padding: '0.5rem'
-        }}>
+          padding: '1rem'
+        }}
+      >
         {messages.map((msg, index) => (
-          <div key={index}
+          // Container that aligns message bubble left or right
+          <div
+            key={index}
             style={{
-              maxWidth: '70%',
-              margin: '0.5rem 0',
-              padding: '0.75rem',
-              backgroundColor: msg.role === 'user' ? 'var(--user-bubble-bg)' : 'var(--assistant-bubble-bg)',
-              borderRadius: '15px',
-              marginLeft: msg.role === 'user' ? 'auto' : '0',
-              textAlign: msg.role === 'user' ? 'right' : 'left'
-            }}>
-            {renderMessageContent(msg.content)}
+              display: 'flex',
+              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              margin: '0.5rem 0'
+            }}
+          >
+            {/* The message bubble */}
+            <div
+              style={{
+                maxWidth: '70%',
+                padding: '0.75rem',
+                borderRadius: '15px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                backgroundColor:
+                  msg.role === 'user'
+                    ? 'var(--user-bubble-bg)'
+                    : 'var(--assistant-bubble-bg)',
+                wordWrap: 'break-word'
+              }}
+            >
+              {renderMessageContent(msg.content)}
+            </div>
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage} style={{ display: 'flex' }}>
+
+      {/* Form to submit new messages */}
+      <form onSubmit={sendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
         <input
           type="text"
           placeholder="Type your message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          style={{ flexGrow: 1, marginRight: '0.5rem' }}
+          style={{
+            flexGrow: 1,
+            fontSize: '1rem',
+            padding: '0.75rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            outline: 'none'
+          }}
         />
-        {/* Updated mic button using a react-icon */}
-        <button type="button" onClick={handleMicClick} style={{ marginRight: '0.5rem' }}>
+        <button
+          type="button"
+          onClick={handleMicClick}
+          style={{
+            fontSize: '1rem',
+            padding: '0.75rem',
+            border: 'none',
+            borderRadius: '4px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
           <FiMic />
         </button>
-        <button type="submit">Send</button>
+        <button
+          type="submit"
+          style={{
+            fontSize: '1rem',
+            padding: '0.75rem 1rem',
+            border: 'none',
+            borderRadius: '4px',
+            backgroundColor: 'green',
+            color: 'white',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <FiSend />
+          Send
+        </button>
       </form>
     </div>
   );

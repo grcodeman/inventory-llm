@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { FiMic, FiCheck } from 'react-icons/fi';
+import { FiMic, FiCheck, FiSend } from 'react-icons/fi';
 
 // Render API blocks with checkmark
 const ApiBlock = ({ content }) => {
@@ -105,21 +105,21 @@ export default function ChatBox() {
         {
           "role": "user",
           "content": [
-              {
-                  "type": "text",
-                  "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
-              }
+            {
+              "type": "text",
+              "text": "hey can you add 10 sausages to my freezer and im increasing my waffles by 5"
+            }
           ]
-      },
-      {
+        },
+        {
           "role": "assistant",
           "content": [
-              {
-                  "type": "text",
-                  "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
-              }
+            {
+              "type": "text",
+              "text": "Got it, let me help you update your inventory.\n{create: \"sausage\", 10, \"freezer\"}\n{change: \"waffle\", 5}\nApprove those above changes if they look correct."
+            }
           ]
-      },
+        },
         userMessage,
       ];
 
@@ -235,9 +235,13 @@ export default function ChatBox() {
             borderRadius: '4px',
             backgroundColor: 'green',
             color: 'white',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
           }}
         >
+          <FiSend />
           Send
         </button>
       </form>

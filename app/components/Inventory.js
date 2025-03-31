@@ -11,9 +11,14 @@ import {
 } from 'react-icons/fi';
 
 export default function Inventory() {
-  const [itemInput, setItemInput] = useState('');
-  const [locations, setLocations] = useState({});
+  // Single input for adding a new location
   const [locationInput, setLocationInput] = useState("");
+
+  // A dictionary of item inputs keyed by location
+  // e.g. { 'Kitchen': 'banana', 'Garage': 'hammer' }
+  const [itemInputs, setItemInputs] = useState({});
+
+  const [locations, setLocations] = useState({});
   const [contextMenu, setContextMenu] = useState(null);
   const [openLocations, setOpenLocations] = useState({});
 
@@ -29,20 +34,29 @@ export default function Inventory() {
     });
   };
 
+  // Add a new location if text is valid and not a duplicate
   const addLocation = () => {
-    if (locationInput.trim() && !locations[locationInput]) {
-      setLocations((prev) => ({ ...prev, [locationInput]: {} }));
-      setLocationInput('');
+    const locName = locationInput.trim();
+    if (locName && !locations[locName]) {
+      setLocations((prev) => ({ ...prev, [locName]: {} }));
     }
+    setLocationInput('');
   };
 
-  const deleteLocation = (locationName) => {
-    setLocations((prev) => {
-      const updatedLocations = { ...prev };
-      delete updatedLocations[locationName];
-      return updatedLocations;
-    });
-    setContextMenu(null);
+  // Add an item to a particular location
+  const addItem = (location) => {
+    const itemName = (itemInputs[location] || "").trim();
+    if (itemName) {
+      setLocations((prev) => ({
+        ...prev,
+        [location]: {
+          ...prev[location],
+          [itemName]: (prev[location][itemName] || 0) + 1,
+        },
+      }));
+    }
+    // Clear the item input for this location
+    setItemInputs((prev) => ({ ...prev, [location]: '' }));
   };
 
   const renameLocation = (locationName) => {
@@ -57,17 +71,13 @@ export default function Inventory() {
     }
   };
 
-  const addItem = (location) => {
-    if (itemInput.trim()) {
-      setLocations((prev) => ({
-        ...prev,
-        [location]: {
-          ...prev[location],
-          [itemInput]: (prev[location][itemInput] || 0) + 1,
-        },
-      }));
-      setItemInput('');
-    }
+  const deleteLocation = (locationName) => {
+    setLocations((prev) => {
+      const updatedLocations = { ...prev };
+      delete updatedLocations[locationName];
+      return updatedLocations;
+    });
+    setContextMenu(null);
   };
 
   const renameItem = (locationName, oldItemName) => {
@@ -139,13 +149,6 @@ export default function Inventory() {
     }
   };
 
-  const toggleDropdown = (locationName) => {
-    setOpenLocations((prev) => ({
-      ...prev,
-      [locationName]: !prev[locationName],
-    }));
-  };
-
   const moveItem = (oldLocation, itemName) => {
     const newLocation = prompt("Enter the new location for this item:");
     if (newLocation && locations[newLocation]) {
@@ -168,7 +171,14 @@ export default function Inventory() {
     }
   };
 
-  // Handler to close the context menu when clicking outside of it
+  const toggleDropdown = (locationName) => {
+    setOpenLocations((prev) => ({
+      ...prev,
+      [locationName]: !prev[locationName],
+    }));
+  };
+
+  // Close the context menu when clicking outside
   const handleOverlayClick = () => {
     setContextMenu(null);
   };
@@ -177,8 +187,14 @@ export default function Inventory() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem' }}>
       <h2 style={{ marginBottom: '1rem' }}>Inventory</h2>
 
-      {/* Add location form */}
-      <div style={{ marginBottom: "10px", display: 'flex', gap: '0.5rem' }}>
+      {/* FORM to allow Enter to add location */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          addLocation();
+        }}
+        style={{ marginBottom: "10px", display: 'flex', gap: '0.5rem' }}
+      >
         <input
           type='text'
           placeholder='Add location...'
@@ -193,7 +209,7 @@ export default function Inventory() {
           }}
         />
         <button
-          onClick={addLocation}
+          type="submit"
           style={{
             fontSize: '1.1rem',
             padding: '0.5rem 1rem',
@@ -210,7 +226,7 @@ export default function Inventory() {
           <FiPlus style={{ fontSize: '1.2rem' }} />
           Add
         </button>
-      </div>
+      </form>
 
       {/* Scrollable container for locations */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -226,9 +242,8 @@ export default function Inventory() {
                 userSelect: "none",
               }}
             >
-              {/* LOCATION HEADER */}
+              {/* LOCATION HEADER (clickable for expand/collapse) */}
               <div
-                // The entire header is clickable to toggle
                 onClick={() => toggleDropdown(location)}
                 style={{
                   padding: "10px",
@@ -240,10 +255,9 @@ export default function Inventory() {
                   borderTopLeftRadius: '6px',
                   borderTopRightRadius: '6px',
                   fontWeight: 'bold',
-                  cursor: 'pointer',  // <--- entire header is clickable
+                  cursor: 'pointer',
                 }}
               >
-                {/* Left side with arrow & location name */}
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <span>{openLocations[location] ? "▲" : "▼"}</span>
                   <span>{location}</span>
@@ -252,8 +266,7 @@ export default function Inventory() {
                 {/* 3-dot menu button for location actions */}
                 <button
                   onClick={(e) => openContextMenu(e, false, location)}
-                  onMouseDown={(e) => e.stopPropagation()} 
-                  // ^ ensures that pressing this button won't toggle dropdown
+                  onMouseDown={(e) => e.stopPropagation()} // don't toggle the panel
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -270,6 +283,7 @@ export default function Inventory() {
               {/* LOCATION DROPDOWN CONTENT */}
               {openLocations[location] && (
                 <div style={{ padding: "10px", borderTop: '1px solid #ccc' }}>
+                  {/* FORM for adding an item to this location */}
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -280,8 +294,15 @@ export default function Inventory() {
                     <input
                       type="text"
                       placeholder="Add item..."
-                      value={itemInput}
-                      onChange={(e) => setItemInput(e.target.value)}
+                      // Unique input per location
+                      value={itemInputs[location] || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setItemInputs((prev) => ({
+                          ...prev,
+                          [location]: value
+                        }));
+                      }}
                       style={{
                         flex: 1,
                         fontSize: '1rem',

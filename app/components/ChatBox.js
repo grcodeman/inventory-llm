@@ -89,31 +89,37 @@ export default function ChatBox() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Add the user's message to chat
+    // User message
     const userMessage = { role: 'user', content: input.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
 
+    // Start typing bubble
+    const typingIndex = messages.length + 1;
+    setMessages((prev) => [
+      ...prev,
+      { role: 'assistant', content: '...' }
+    ]);
+
+
     try {
-      // 1) First, fetch the current inventory from /api/inv route
+      // 1) Fetch the current inventory from /api/inv route
       const invRes = await fetch('/api/inv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'GET_ALL' })
       });
       const invData = await invRes.json();
-      // If the route returns 'locations', we can embed it into the system message
       const { locations } = invData;
 
-      // 2) Construct conversation with inventory context
+      // 2) Construct the conversation with inventory context
       const conversation = [
         {
           role: "system",
           content:
-            // Original system prompt...
             "You are an Inventory Management Virtual Assistant. Your role is to interpret user commands (via text or voice) to update an inventory system.\n\n" +
             "You have access to internal API blocks for making changes, and the user has an existing inventory. Here is the current JSON inventory:\n\n" +
-            JSON.stringify(locations, null, 2) + // embeding current inventory
+            JSON.stringify(locations, null, 2) +
             "\n\n" +
             "The available API blocks are:\n\n" +
             "create(name, amt, loc): Create a new inventory item with the specified name, amount, and location.\n" +
@@ -148,7 +154,7 @@ export default function ChatBox() {
         userMessage
       ];
 
-      // 3) Send  conversation to /api/chat route
+      // 3) Send conversation to /api/chat route
       const resApi = await fetch('/api/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -160,11 +166,25 @@ export default function ChatBox() {
       const assistantContent = data.choices?.[0]?.message?.content || "No response";
       const assistantMessage = { role: 'assistant', content: assistantContent };
 
-      // 5) Update local messages with assistant response
-      setMessages((prev) => [...prev, assistantMessage]);
+      // 5) Replace typing with response
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[typingIndex] = assistantMessage;
+        return updated;
+      });
 
     } catch (error) {
       console.error("Error calling API or inventory route:", error);
+
+      // If error, replace typing with error message
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[typingIndex] = {
+          role: 'assistant',
+          content: '[Error retrieving response]'
+        };
+        return updated;
+      });
     }
   };
 

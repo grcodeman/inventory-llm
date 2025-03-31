@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FiPlus,
   FiMinus,
@@ -17,15 +17,36 @@ export default function Inventory() {
   // A dictionary of item inputs keyed by location
   const [itemInputs, setItemInputs] = useState({});
 
+  // The entire map of { location => { item => quantity } }
   const [locations, setLocations] = useState({});
+
   const [contextMenu, setContextMenu] = useState(null);
   const [openLocations, setOpenLocations] = useState({});
+
+  // ----------- FETCH THE CURRENT INVENTORY ON MOUNT -----------
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/inv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'GET_ALL' })
+        });
+        const data = await res.json();
+        if (data.locations) {
+          setLocations(data.locations);
+        }
+      } catch (err) {
+        console.error("Error fetching inventory:", err);
+      }
+    })();
+  }, []);
 
   // Helper to show the context menu
   const openContextMenu = (e, isItem, locationName, itemName = null) => {
     e.preventDefault();
     e.stopPropagation(); // Stop from toggling location
-    
+
     setContextMenu({
       itemName: isItem ? itemName : null,
       locationName,
@@ -34,143 +55,107 @@ export default function Inventory() {
     });
   };
 
-  // Add a new location if text is valid and not a duplicate
-  const addLocation = () => {
-    const locName = locationInput.trim();
-    if (locName && !locations[locName]) {
-      setLocations((prev) => ({ ...prev, [locName]: {} }));
+  // -------------- API CALL HELPERS --------------
+  const callAPI = async (action, payload) => {
+    try {
+      const res = await fetch('/api/inv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, payload }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      }
+      if (data.locations) {
+        setLocations(data.locations); // update local state
+      }
+    } catch (err) {
+      console.error("Error calling /api/inv:", err);
     }
+  };
+
+  // Add a new location if text is valid and not a duplicate
+  const addLocation = async () => {
+    await callAPI('ADD_LOCATION', locationInput);
     setLocationInput('');
   };
 
   // Add an item to a particular location
-  const addItem = (location) => {
+  const addItem = async (location) => {
     const itemName = (itemInputs[location] || "").trim();
     if (itemName) {
-      setLocations((prev) => ({
-        ...prev,
-        [location]: {
-          ...prev[location],
-          [itemName]: (prev[location][itemName] || 0) + 1,
-        },
-      }));
+      await callAPI('ADD_ITEM', { location, itemName });
+      setItemInputs(prev => ({ ...prev, [location]: '' }));
     }
-    // Clear the item input for this location
-    setItemInputs((prev) => ({ ...prev, [location]: '' }));
   };
 
-  const renameLocation = (locationName) => {
+  // Rename location
+  const renameLocation = async (locationName) => {
     const newLocationName = prompt("Enter new name for location:", locationName);
     if (newLocationName && newLocationName.trim()) {
-      setLocations((prev) => {
-        const updatedLocations = { ...prev };
-        updatedLocations[newLocationName] = updatedLocations[locationName];
-        delete updatedLocations[locationName];
-        return updatedLocations;
-      });
+      await callAPI('RENAME_LOCATION', { oldName: locationName, newName: newLocationName });
     }
   };
 
-  const deleteLocation = (locationName) => {
-    setLocations((prev) => {
-      const updatedLocations = { ...prev };
-      delete updatedLocations[locationName];
-      return updatedLocations;
-    });
+  // Delete location
+  const deleteLocation = async (locationName) => {
+    await callAPI('DELETE_LOCATION', { locationName });
     setContextMenu(null);
   };
 
-  const renameItem = (locationName, oldItemName) => {
+  // Rename item
+  const renameItem = async (locationName, oldItemName) => {
     const newItemName = prompt("Enter new name for item:", oldItemName);
     if (newItemName && newItemName.trim()) {
-      if (locations[locationName][newItemName]) {
-        alert("An item with that name already exists in this location!");
-      } else {
-        setLocations((prevLocations) => {
-          const updatedLocationItems = { ...prevLocations[locationName] };
-          updatedLocationItems[newItemName] = updatedLocationItems[oldItemName];
-          delete updatedLocationItems[oldItemName];
-          return {
-            ...prevLocations,
-            [locationName]: updatedLocationItems,
-          };
-        });
-      }
+      await callAPI('RENAME_ITEM', { location: locationName, oldItem: oldItemName, newItem: newItemName });
     }
   };
 
-  const deleteItem = (locationName, itemName) => {
-    setLocations((prevLocations) => {
-      const updatedLocationItems = { ...prevLocations[locationName] };
-      delete updatedLocationItems[itemName];
-      return {
-        ...prevLocations,
-        [locationName]: updatedLocationItems,
-      };
-    });
+  // Delete item
+  const deleteItem = async (locationName, itemName) => {
+    await callAPI('DELETE_ITEM', { location: locationName, item: itemName });
+    setContextMenu(null);
   };
 
-  const increaseItemQuantity = (locationName, itemName) => {
-    setLocations((prevLocations) => ({
-      ...prevLocations,
-      [locationName]: {
-        ...prevLocations[locationName],
-        [itemName]: prevLocations[locationName][itemName] + 1,
-      },
-    }));
+  // Increase item quantity by 1
+  const increaseItemQuantity = async (locationName, itemName) => {
+    // We'll just fetch the item quantity from local state, add 1, then call change qty
+    const current = locations[locationName][itemName];
+    const newQty = current + 1;
+    await callAPI('CHANGE_QTY', { location: locationName, item: itemName, newQty });
   };
 
-  const decreaseItemQuantity = (locationName, itemName) => {
-    setLocations((prevLocations) => ({
-      ...prevLocations,
-      [locationName]: {
-        ...prevLocations[locationName],
-        [itemName]: Math.max(0, prevLocations[locationName][itemName] - 1),
-      },
-    }));
+  // Decrease item quantity by 1 (min 0)
+  const decreaseItemQuantity = async (locationName, itemName) => {
+    const current = locations[locationName][itemName];
+    const newQty = Math.max(0, current - 1);
+    await callAPI('CHANGE_QTY', { location: locationName, item: itemName, newQty });
   };
 
-  const changeItemQuantity = (locationName, itemName) => {
+  // Prompt user for new quantity
+  const changeItemQuantity = async (locationName, itemName) => {
     const currentQuantity = locations[locationName][itemName];
     const newQuantityStr = prompt("Enter new quantity for item:", currentQuantity);
     if (newQuantityStr !== null) {
-      const newQuantity = parseInt(newQuantityStr, 10);
-      if (!isNaN(newQuantity) && newQuantity >= 0) {
-        setLocations((prevLocations) => ({
-          ...prevLocations,
-          [locationName]: {
-            ...prevLocations[locationName],
-            [itemName]: newQuantity,
-          },
-        }));
+      const newQty = parseInt(newQuantityStr, 10);
+      if (!isNaN(newQty) && newQty >= 0) {
+        await callAPI('CHANGE_QTY', { location: locationName, item: itemName, newQty });
       } else {
         alert("Invalid quantity");
       }
     }
   };
 
-  const moveItem = (oldLocation, itemName) => {
+  // Move an item from one location to another
+  const moveItem = async (oldLocation, itemName) => {
     const newLocation = prompt("Enter the new location for this item:");
-    if (newLocation && locations[newLocation]) {
-      setLocations((prevLocations) => {
-        const updatedLocations = { ...prevLocations };
-        const quantity = updatedLocations[oldLocation][itemName];
-        // Remove from the old location
-        const updatedOldLocation = { ...updatedLocations[oldLocation] };
-        delete updatedOldLocation[itemName];
-        updatedLocations[oldLocation] = updatedOldLocation;
-
-        // Add to the new location
-        const updatedNewLocation = { ...updatedLocations[newLocation] };
-        updatedNewLocation[itemName] = (updatedNewLocation[itemName] || 0) + quantity;
-        updatedLocations[newLocation] = updatedNewLocation;
-        return updatedLocations;
-      });
-    } else {
-      alert("Invalid location name.");
+    if (newLocation) {
+      await callAPI('MOVE_ITEM', { oldLocation, itemName, newLocation });
     }
   };
 
+  // Expand/collapse location
   const toggleDropdown = (locationName) => {
     setOpenLocations((prev) => ({
       ...prev,
@@ -183,9 +168,9 @@ export default function Inventory() {
     setContextMenu(null);
   };
 
-  // A simple approach to show menu above if we detect not enough space below
+  // A simple approach to show menu above if not enough space
   const getMenuPosition = (yPos) => {
-    const assumedHeight = 180; // approximate height of the menu
+    const assumedHeight = 180; // approximate height
     let topPos = yPos;
     if (topPos + assumedHeight > window.innerHeight) {
       topPos -= assumedHeight;
@@ -252,7 +237,7 @@ export default function Inventory() {
                 userSelect: "none",
               }}
             >
-              {/* LOCATION HEADER (clickable for expand/collapse) */}
+              {/* LOCATION HEADER (expand/collapse) */}
               <div
                 onClick={() => toggleDropdown(location)}
                 style={{
@@ -392,7 +377,7 @@ export default function Inventory() {
                             <FiPlus />
                           </button>
 
-                          {/* 3-dot menu for item (moved to the right of + / -) */}
+                          {/* 3-dot menu for item */}
                           <button
                             onClick={(e) => openContextMenu(e, true, location, item)}
                             style={{
@@ -434,7 +419,7 @@ export default function Inventory() {
           <div
             style={{
               position: "absolute",
-              top: getMenuPosition(contextMenu.y), // see function above
+              top: getMenuPosition(contextMenu.y),
               left: contextMenu.x,
               background: "#fff",
               border: "1px solid #ccc",
@@ -445,7 +430,6 @@ export default function Inventory() {
             }}
           >
             {contextMenu.itemName ? (
-              /* ITEM MENU */
               <>
                 <button
                   title="Delete Item"
@@ -481,7 +465,6 @@ export default function Inventory() {
                 </button>
               </>
             ) : (
-              /* LOCATION MENU */
               <>
                 <button
                   title="Delete Location"
@@ -508,9 +491,6 @@ export default function Inventory() {
   );
 }
 
-/**
- * Helper style function for context menu buttons
- */
 function menuButtonStyle(bgColor) {
   return {
     fontSize: '1rem',

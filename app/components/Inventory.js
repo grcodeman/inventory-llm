@@ -181,7 +181,7 @@ export default function Inventory() {
   };
 
   return (
-    <div style={{ padding: '1rem', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem' }}>
       <h2>Inventory</h2>
 
       {/* Add location form */}
@@ -197,82 +197,85 @@ export default function Inventory() {
         </button>
       </div>
 
-      {/* Display locations */}
-      <div style={{ display: "flex", flexDirection: "column", gap: '10px', flexWrap: 'wrap' }}>
-        {Object.keys(locations).map((location) => (
-          <div
-            key={location}
-            style={{
-              border: "2px solid gray",
-              minWidth: "200px",
-              cursor: "pointer",
-              userSelect: "none",
-            }}
-          >
-            {/* Location Header (expand/collapse) */}
+      {/* Scrollable container for locations */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Display locations */}
+        <div style={{ display: "flex", flexDirection: "column", gap: '10px', flexWrap: 'wrap' }}>
+          {Object.keys(locations).map((location) => (
             <div
-              onClick={() => toggleDropdown(location)}
-              onContextMenu={(e) => handleLocationContextMenu(e, location)} // Right-click on location name
+              key={location}
               style={{
-                padding: "10px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                border: "2px solid gray",
+                minWidth: "200px",
+                cursor: "pointer",
+                userSelect: "none",
               }}
             >
-              <span>{location}</span>
-              <span>{openLocations[location] ? "▲" : "▼"}</span>
-            </div>
-
-            {/* Dropdown Content (hidden if closed) */}
-            {openLocations[location] && (
-              <div style={{ padding: "10px" }}>
-                <form onSubmit={(e) => { e.preventDefault(); addItem(location); }}>
-                  <input
-                    type="text"
-                    placeholder="Add item..."
-                    value={itemInput}
-                    onChange={(e) => setItemInput(e.target.value)}
-                  />
-                  <button type="submit">
-                    <FiPlus />
-                  </button>
-                </form>
-
-                {/* List of items in location */}
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {Object.keys(locations[location]).map((item, index) => (
-                    <li
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                      }}
-                      onContextMenu={(e) => handleItemContextMenu(e, location, item)} // Attach the context menu
-                    >
-                      <span>{item}</span>
-                      <div>
-                        <button
-                          onClick={() => decreaseItemQuantity(location, item)}
-                          style={{ marginRight: "5px" }}
-                        >
-                          <FiMinus />
-                        </button>
-                        <span>{locations[location][item]}</span>
-                        <button
-                          onClick={() => increaseItemQuantity(location, item)}
-                          style={{ marginLeft: "5px" }}
-                        >
-                          <FiPlus />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+              {/* Location Header (expand/collapse) */}
+              <div
+                onClick={() => toggleDropdown(location)}
+                onContextMenu={(e) => handleLocationContextMenu(e, location)} // Right-click on location name
+                style={{
+                  padding: "10px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span>{location}</span>
+                <span>{openLocations[location] ? "▲" : "▼"}</span>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Dropdown Content (hidden if closed) */}
+              {openLocations[location] && (
+                <div style={{ padding: "10px" }}>
+                  <form onSubmit={(e) => { e.preventDefault(); addItem(location); }}>
+                    <input
+                      type="text"
+                      placeholder="Add item..."
+                      value={itemInput}
+                      onChange={(e) => setItemInput(e.target.value)}
+                    />
+                    <button type="submit">
+                      <FiPlus />
+                    </button>
+                  </form>
+
+                  {/* List of items in location */}
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {Object.keys(locations[location]).map((item, index) => (
+                      <li
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                        onContextMenu={(e) => handleItemContextMenu(e, location, item)} // Attach the context menu
+                      >
+                        <span>{item}</span>
+                        <div>
+                          <button
+                            onClick={() => decreaseItemQuantity(location, item)}
+                            style={{ marginRight: "5px" }}
+                          >
+                            <FiMinus />
+                          </button>
+                          <span>{locations[location][item]}</span>
+                          <button
+                            onClick={() => increaseItemQuantity(location, item)}
+                            style={{ marginLeft: "5px" }}
+                          >
+                            <FiPlus />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Context menu for location or item */}

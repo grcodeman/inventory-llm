@@ -1,14 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import {
-  FiPlus,
-  FiMinus,
-  FiTrash2,
-  FiEdit,
-  FiRefreshCw,
-  FiArrowRight,
-  FiMoreVertical
-} from 'react-icons/fi';
+import { FiPlus, FiMinus, FiTrash2, FiEdit, FiRefreshCw, FiArrowRight, FiMoreVertical } from 'react-icons/fi';
 
 export default function Inventory() {
   // Single input for adding a new location

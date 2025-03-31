@@ -15,7 +15,6 @@ export default function Inventory() {
   const [locationInput, setLocationInput] = useState("");
 
   // A dictionary of item inputs keyed by location
-  // e.g. { 'Kitchen': 'banana', 'Garage': 'hammer' }
   const [itemInputs, setItemInputs] = useState({});
 
   const [locations, setLocations] = useState({});
@@ -26,11 +25,12 @@ export default function Inventory() {
   const openContextMenu = (e, isItem, locationName, itemName = null) => {
     e.preventDefault();
     e.stopPropagation(); // Stop from toggling location
+    
     setContextMenu({
       itemName: isItem ? itemName : null,
       locationName,
       x: e.clientX,
-      y: e.clientY,
+      y: e.clientY
     });
   };
 
@@ -181,6 +181,16 @@ export default function Inventory() {
   // Close the context menu when clicking outside
   const handleOverlayClick = () => {
     setContextMenu(null);
+  };
+
+  // A simple approach to show menu above if we detect not enough space below
+  const getMenuPosition = (yPos) => {
+    const assumedHeight = 180; // approximate height of the menu
+    let topPos = yPos;
+    if (topPos + assumedHeight > window.innerHeight) {
+      topPos -= assumedHeight;
+    }
+    return topPos;
   };
 
   return (
@@ -345,21 +355,6 @@ export default function Inventory() {
                       >
                         <span style={{ fontSize: '1rem' }}>{item}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {/* 3-dot menu for item */}
-                          <button
-                            onClick={(e) => openContextMenu(e, true, location, item)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '1.2rem',
-                              color: '#666',
-                            }}
-                            title="Item actions"
-                          >
-                            <FiMoreVertical />
-                          </button>
-
                           {/* Decrease / quantity / Increase */}
                           <button
                             onClick={() => decreaseItemQuantity(location, item)}
@@ -396,6 +391,21 @@ export default function Inventory() {
                           >
                             <FiPlus />
                           </button>
+
+                          {/* 3-dot menu for item (moved to the right of + / -) */}
+                          <button
+                            onClick={(e) => openContextMenu(e, true, location, item)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '1.2rem',
+                              color: '#666',
+                            }}
+                            title="Item actions"
+                          >
+                            <FiMoreVertical />
+                          </button>
                         </div>
                       </li>
                     ))}
@@ -419,11 +429,12 @@ export default function Inventory() {
               zIndex: 999,
             }}
           />
+          
           {/* CONTEXT MENU */}
           <div
             style={{
               position: "absolute",
-              top: contextMenu.y,
+              top: getMenuPosition(contextMenu.y), // see function above
               left: contextMenu.x,
               background: "#fff",
               border: "1px solid #ccc",

@@ -40,7 +40,9 @@ Whenever the bot proposes changes, it will:
 3. Ask you to confirm before applying them by pressing check.  
 
 
-## Getting Started
+## 💻 Getting Started
+
+Hackathon Information: GPT Wrapper Hackathon on sprint.dev, sponsored by Nebius AI Studio
 
 Create a **.env.local** file in the root dir and place your nebius key:
 ```text
